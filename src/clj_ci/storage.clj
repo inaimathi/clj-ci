@@ -59,6 +59,13 @@
                :id (srcs/path->source-id (:path project))
                :timestamp now))))))
 
+(defn file-pair->result
+  [file-pair]
+  (let [[results logs] (sort-by #(.getName %) file-pair)]
+    (assoc
+     (edn/read-string (slurp results))
+     :logs logs)))
+
 (defn results-of
   [project-name]
   (if-let [project (get-project project-name)]
@@ -72,13 +79,6 @@
         (do
           (io/make-parents path)
           [])))))
-
-(defn file-pair->result
-  [file-pair]
-  (let [[results logs] (sort-by #(.getName %) file-pair)]
-    (assoc
-     (edn/read-string (slurp results))
-     :logs logs)))
 
 (defn result-at
   [project timestamp]

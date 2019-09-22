@@ -3,7 +3,9 @@
             [bidi.ring :as bring]
             [ring.middleware.params :refer [wrap-params]]
 
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+
+            [clj-ci.storage :as store]))
 
 (defn -api-response
   [body & {:keys [status] :or {status 200}}]
@@ -18,8 +20,10 @@
         {["project/" :id "/"]
          {""
           #(-api-response
-            {:todo "result history"
-             :project (get-in % [:params :id])})
+            {:history
+             (->> (get-in % [:params :id])
+                  keyword store/results-of
+                  (map (fn [r] (dissoc r :logs))))})
 
           "status.svg"
           #(-api-response
