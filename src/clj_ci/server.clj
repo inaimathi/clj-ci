@@ -21,7 +21,7 @@
             {:todo "result history"
              :project (get-in % [:params :id])})
 
-          "widget"
+          "status.svg"
           #(-api-response
             {:todo "result widget"
              :project (get-in % [:params :id])})

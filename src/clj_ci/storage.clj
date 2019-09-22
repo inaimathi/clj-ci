@@ -67,12 +67,11 @@
         (->>  (io/file path)
               file-seq
               (filter #(.isFile %))
-              (group-by #(edn/read-string (.getName (io/file (.getParent %)))))
-              (map (fn [[k v]] [k (file-pair->result v)]))
-              (into {}))
+              (partition-by #(edn/read-string (.getName (io/file (.getParent %)))))
+              (map file-pair->result))
         (do
           (io/make-parents path)
-          {})))))
+          [])))))
 
 (defn file-pair->result
   [file-pair]
@@ -83,17 +82,13 @@
 
 (defn result-at
   [project timestamp]
-  (let [res (results-of project)]
-    (->> (keys res)
-         (sort >)
-         (drop-while #(> % timestamp))
-         first
-         (get res))))
+  (->> (results-of project)
+       (sort-by :timestamp >)
+       (drop-while #(> (:timestamp %) timestamp))
+       first))
 
 (defn latest-result
   [project]
-  (let [res (results-of project)]
-    (->> (keys res)
-         sort
-         last
-         (get res))))
+  (->> (results-of project)
+       (sort-by :timestamp >)
+       first))
