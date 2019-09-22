@@ -21,8 +21,6 @@
 (defn -shell-opts [path & {:keys [out timeout] :or {out *out* timeout 20000}}]
   {:out out :err out :dir path :throw false :timeout timeout :verbose true})
 
-;; (tests/test-project! "/home/inaimathi/projects/clj-ci" "/home/inaimathi/results.log")
-
 (defmulti test-project!
   (fn [project-path log-path]
     (path->test-strategy project-path)))
