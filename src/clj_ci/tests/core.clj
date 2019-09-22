@@ -1,7 +1,6 @@
 (ns clj-ci.tests.core
   (:require [clojure.java.io :as io]
-            [me.raynes.conch :as sh]
-            [me.raynes.conch.low-level :as low]))
+            [me.raynes.conch :as sh]))
 
 (defn path->test-strategy
   [project-path]
@@ -19,20 +18,24 @@
 
       :else nil)))
 
-(defn -shell-opts [path]
-  {:out *out* :err *out* :dir path :throw false :timeout 20000 :verbose true})
+(defn -shell-opts [path & {:keys [out timeout] :or {out *out* timeout 20000}}]
+  {:out out :err out :dir path :throw false :timeout timeout :verbose true})
 
-(defmulti test-project! path->test-strategy)
+;; (tests/test-project! "/home/inaimathi/projects/clj-ci" "/home/inaimathi/results.log")
 
-(defmethod test-project! :default [project-path] nil)
+(defmulti test-project!
+  (fn [project-path log-path]
+    (path->test-strategy project-path)))
+
+(defmethod test-project! :default [project-path log-path] nil)
 (defmethod test-project! :clojure
-  [project-path]
+  [project-path log-path]
   (sh/let-programs [lein "lein"]
-    (let [res (lein "test" (-shell-opts project-path))]
-      {:success? (and (= 0 @(:exit-code res)) (->> res :proc :err empty?))
-       :out (->> res :proc :out)})))
+    (let [res (lein "test" (-shell-opts project-path :out (io/file log-path)))]
+      {:success? (and (= 0 @(:exit-code res)) (->> res :proc :err empty?))})))
 
 (defmethod test-project! :common-lisp-sbcl-prove
-  [project-path]
+  [project-path log-path]
   (sh/let-programs [sbcl "sbcl"]
-    (sbcl "--eval" "(ql:quickload :prove)" "--eval" "(ql:quickload (list :trivial-sat-solver :trivial-sat-solver-test))" "--eval" "(and (or (prove:run :trivial-sat-solver-test) (uiop:quit -1)) (uiop:quit 0))" (-shell-opts "/home/inaimathi/quicklisp/local-projects/trivial-sat-solver"))))
+    (let [res (sbcl "--eval" "(ql:quickload :prove)" "--eval" "(ql:quickload (list :trivial-sat-solver :trivial-sat-solver-test))" "--eval" "(and (or (prove:run :trivial-sat-solver-test) (uiop:quit -1)) (uiop:quit 0))" (-shell-opts "/home/inaimathi/quicklisp/local-projects/trivial-sat-solver" :out (io/file log-path)))]
+      {:success? (and (= 0 @(:exit-code res)) (->> res :proc :err empty?))})))
