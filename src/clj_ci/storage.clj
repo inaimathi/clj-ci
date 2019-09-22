@@ -54,7 +54,10 @@
       (io/make-parents log-path)
       (let [res (tests/test-project! (:path project) log-path)]
         (spit (str res-path "results.edn")
-              (assoc res :id (srcs/path->source-id (:path project))))))))
+              (assoc
+               res
+               :id (srcs/path->source-id (:path project))
+               :timestamp now))))))
 
 (defn results-of
   [project-name]
