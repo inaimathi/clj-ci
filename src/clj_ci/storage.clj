@@ -58,19 +58,30 @@
 
 (defn results-of
   [project-name]
-  :TODO--return-result-history-for-the-given-project
   (if-let [project (get-project project-name)]
     (let [path (str (:results PATH) project-name "/")]
       (if (.exists (io/as-file path))
-        (filter #(.isFile %) (file-seq (io/file path)))
+        (->>  (io/file path)
+              file-seq
+              (filter #(.isFile %))
+              (group-by #(edn/read-string (.getName (io/file (.getParent %))))))
         (do
           (io/make-parents path)
-          (list))))))
+          {})))))
+
+(defn file-pair->result
+  [file-pair]
+  (let [[results logs] (sort-by #(.getName %) file-pair)]
+    (assoc
+     (edn/read-string (slurp results))
+     :logs logs)))
 
 (defn result-at
   [project timestamp]
-  :TODO--get-nearest-result-before-given-timestamp)
+  (let [res (results-of project)]
+    (get res (first (drop-while #(> % 1569172627) (sort > (keys res)))))))
 
 (defn latest-result
   [project]
-  :TODO--return-the-latest-result-for-the-given-project)
+  (let [res (results-of project)]
+    (file-pair->result (get res (last (sort (keys res)))))))
