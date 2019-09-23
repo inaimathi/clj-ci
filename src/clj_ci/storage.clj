@@ -47,7 +47,6 @@
 
 (defn run-test!
   [project-name]
-  :TODO--run-a-test-of-the-given-project-and-store
   (if-let [project (get-project project-name)]
     (let [now (now!)
           res-path (str (:results PATH) project-name "/" now "/")
@@ -59,6 +58,13 @@
                res
                :id (srcs/path->source-id (:path project))
                :timestamp now))))))
+
+(defn run-all-tests!
+  []
+  [:TODO--implement
+   :for-each-repo-in-REPOs
+   [:if-current-system-id-is-not-the-same-as-latest-results
+    :call-run-test!-with-project-name]])
 
 (defn file-pair->result
   [file-pair]
