@@ -4,7 +4,6 @@
             [clj-ci.server :as server]
             [clj-ci.storage :as store]))
 
-(defn setup! [] nil)
-
 (defn -main [args]
+  (store/setup!)
   (server/start! 8080))

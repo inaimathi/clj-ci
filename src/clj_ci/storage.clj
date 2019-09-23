@@ -1,5 +1,6 @@
 (ns clj-ci.storage
   (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [clojure.edn :as edn]
 
             [clj-ci.sources.core :as srcs]
@@ -82,13 +83,17 @@
 
 (defn result-at
   [project timestamp]
-  (->> (results-of project)
-       (sort-by :timestamp >)
-       (drop-while #(> (:timestamp %) timestamp))
-       first))
+  (update
+   (->> (results-of project)
+        (sort-by :timestamp >)
+        (drop-while #(> (:timestamp %) timestamp))
+        first)
+   :logs #(str/trim (slurp %))))
 
 (defn latest-result
   [project]
-  (->> (results-of project)
-       (sort-by :timestamp >)
-       first))
+  (update
+   (->> (results-of project)
+        (sort-by :timestamp >)
+        first)
+   :logs #(str/trim (slurp %))))

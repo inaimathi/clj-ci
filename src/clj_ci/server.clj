@@ -20,9 +20,10 @@
         {["project/" :id "/"]
          {""
           #(-api-response
-            {:history
+            {:project (get-in % [:params :id])
+             :history
              (->> (get-in % [:params :id])
-                  keyword store/results-of
+                  store/results-of
                   (map (fn [r] (dissoc r :logs))))})
 
           "status.svg"
@@ -33,8 +34,8 @@
           "results/"
           {""
            #(-api-response
-             {:todo "latest results"
-              :project (get-in % [:params :id])})
+             {:project (get-in % [:params :id])
+              :result (store/latest-result (get-in % [:params :id]))})
 
            ["at/" :timestamp]
            #(-api-response
