@@ -7,7 +7,9 @@
 (defn -main [args]
   (store/setup!)
   (.start
-   (Thread. (fn []
-              (println (store/run-all-tests!))
-              (Thread/sleep 10000))))
+   (Thread.
+    (fn []
+      (while true
+        (println (store/run-all-tests!))
+        (Thread/sleep 10000)))))
   (server/start! 8080))

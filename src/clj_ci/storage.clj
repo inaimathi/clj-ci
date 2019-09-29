@@ -59,13 +59,6 @@
                :id (srcs/path->source-id (:path project))
                :timestamp now))))))
 
-(defn run-all-tests!
-  []
-  [:TODO--implement
-   :for-each-repo-in-REPOs
-   [:if-current-system-id-is-not-the-same-as-latest-results
-    :call-run-test!-with-project-name]])
-
 (defn file-pair->result
   [file-pair]
   (let [[results logs] (sort-by #(.getName %) file-pair)]
@@ -89,17 +82,27 @@
 
 (defn result-at
   [project timestamp]
-  (update
-   (->> (results-of project)
-        (sort-by :timestamp >)
-        (drop-while #(> (:timestamp %) timestamp))
-        first)
-   :logs #(str/trim (slurp %))))
+  (when-let [res (->> (results-of project)
+                      (sort-by :timestamp >)
+                      (drop-while #(> (:timestamp %) timestamp))
+                      first)]
+    (update res :logs #(str/trim (slurp %)))))
 
 (defn latest-result
   [project]
-  (update
-   (->> (results-of project)
-        (sort-by :timestamp >)
-        first)
-   :logs #(str/trim (slurp %))))
+  (when-let [res (->> (results-of project)
+                      (sort-by :timestamp >)
+                      first)]
+    (update res :logs #(str/trim (slurp %)))))
+
+(defn run-all-tests!
+  []
+  (doseq [repo @REPOS]
+    (println "RUNNING TEST FOR" (:name repo) "...")
+    (let [current-source-id (srcs/path->source-id (:path repo))
+          latest-source-id (:id (latest-result (:name repo)))]
+      (println "--Latest ID" latest-source-id "...")
+      (println "--Latest ID" latest-source-id "...")
+      (if (and current-source-id (= current-source-id latest-source-id))
+        (println "----Latest source already tested...")
+        (do (println "--Testing...") (run-test! (:name repo)))))))
